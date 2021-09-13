@@ -1,14 +1,15 @@
 package lib
 
 import (
-	"log"
+	"errors"
 
 	"github.com/joho/godotenv"
 )
 
-func LoadEnv(path string) {
+func LoadEnv(path string) error {
 	err := godotenv.Load(path)
 	if err != nil {
-		log.Fatal("Error while loading .env " + err.Error())
+		return errors.New("Error while loading .env " + err.Error())
 	}
+	return nil
 }
