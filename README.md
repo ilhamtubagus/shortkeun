@@ -1,5 +1,5 @@
 
-<a href="https://echo.labstack.com"><img height="80" src="../urlShortener/public/companylogo.png"></a>
+<a href="#"><img height="80" src="logo.png"></a>
 
 URL shortener backend service implemented with Go on top of [Echo](https://echo.labstack.com/).
 
