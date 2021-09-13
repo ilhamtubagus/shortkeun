@@ -1,38 +1,31 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/ilhamtubagus/urlShortener/api"
 	"github.com/ilhamtubagus/urlShortener/lib"
+	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
 	//uncomment line below in production stage
 	lib.LoadEnv(".env")
+	// Setup the mgm default config
+	err := mgm.SetDefaultConfig(nil, "url-shortener", options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	if err != nil {
+		log.Fatal("Error while initializing database connection " + err.Error())
+	}
 }
 func main() {
-	//Initialize database client
-	client := lib.InitDatabaseClient()
-	//Check if client has been found and connected to
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	err := client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		log.Fatal("MongoDB server was not found " + err.Error())
-	} else {
-		fmt.Println("Connected to MongoDB")
-	}
 	//Create new echo instance
 	e := echo.New()
-	api.StartApp(e, client)
+	api.StartApp(e)
 	p := os.Getenv("PORT")
 	port, err := strconv.Atoi(p)
 	if err != nil {

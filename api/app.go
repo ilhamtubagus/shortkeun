@@ -2,21 +2,30 @@ package api
 
 import (
 	"github.com/ilhamtubagus/urlShortener/api/handlers"
+	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
+	"github.com/ilhamtubagus/urlShortener/repositories"
+	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func StartApp(e *echo.Echo, dbClient *mongo.Client) {
-	//add CustomValidator
+func StartApp(e *echo.Echo) {
+	//add CustomValidator into echo context
 	e.Validator = lib.NewCustomValidator()
 
+	//collections instantiation based on entities
+	userCollection := mgm.Coll(new(entities.User))
+
+	//repositories instantiation
+	userRepository := repositories.NewUserRepository(userCollection)
+
 	//handlers instantiation
-	authHandler := handlers.AuthHandler{}
+	authHandler := handlers.NewAuthHandler(userRepository)
 
 	//routes definition
 	e.GET("/", func(c echo.Context) error {
 		return c.File("./public/index.html")
 	})
-	e.POST("/auth/login/google", authHandler.GoogleSignIn)
+	e.POST("/auth/signin/google", authHandler.GoogleSignIn)
+	e.POST("/auth/register", authHandler.Register)
 }
