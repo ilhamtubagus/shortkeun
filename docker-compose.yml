@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+  # The Go App
+  go-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-shorkeun
+    depends_on:
+      - "mongo"
+    environment:
+      - PORT=${PORT}
+      - MONGO_URI=${MONGO_URI}
+      - G_CLIENT_ID${G_CLIENT_ID}
+      - G_CLIENT_SECRET=${G_CLIENT_SECRET}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USR=${MAIL_USR}
+      - MAIL_FROM=${MAIL_FROM}
+      - MAIL_PASSWD=${MAIL_PASSWD}
+    ports:
+      # Expose port 6969
+      - "6969:${PORT}"
+    volumes:
+      # Attach current directory into /go/src/app inside container
+      - "./:/go/src/app:cached"
+  # MongoDB
+  mongo:
+    image: "mongo:5.0.2-focal"
+    container_name: "mongodb"
+    volumes:
+      # Attach dir ./mongodata into /data/db inside container
+      - ./mongodata:/data/db
+    ports:
+      # Expose port 6969
+      - "27018:27017"
+    restart: always

@@ -19,8 +19,9 @@ func init() {
 	// Setup the mgm default config
 	err := mgm.SetDefaultConfig(nil, "url-shortener", options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
-		log.Fatal("Error while initializing database connection " + err.Error())
+		log.Fatal("Error while initializing database connections " + err.Error())
 	}
+
 }
 func main() {
 	//Create new echo instance
