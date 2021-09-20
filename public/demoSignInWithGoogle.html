@@ -1,0 +1,38 @@
+<html>
+
+<body>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        function handleCredentialResponse(response) {
+            console.log(response)
+            console.log("Encoded JWT ID token: " + response.credential);
+            //send jwt id token back to shortkeun backend server
+            const data = {
+                credential: response.credential
+            }
+            fetch("/auth/sign/google", {
+                method: "POST",
+                body: JSON.stringify(data)
+            }).then(res => {
+                console.log("Request complete! response:", res);
+            }).catch(err => {
+                console.log("Error: ", err)
+            });
+        }
+        window.onload = function () {
+            google.accounts.id.initialize({
+                client_id: "601894538001-i3bjj99pjaf2ocebksqmc3k849m65a89.apps.googleusercontent.com",
+                callback: handleCredentialResponse,
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("buttonDiv"),
+                { theme: "outline", size: "large" }  // customization attributes
+            );
+            google.accounts.id.prompt(); // also display the One Tap dialog
+        }
+    </script>
+    <div id="buttonDiv"></div>
+    </div>
+</body>
+
+</html>

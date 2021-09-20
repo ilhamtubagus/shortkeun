@@ -12,7 +12,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func SendHTMLMail(to []string, subject string, body interface{}, templatePath string, attachments []string) error {
+func SendHTMLMail(to []string, subject string, body interface{}, templatePath string, attachmentsPath []string) error {
 	smtpHost := os.Getenv("MAIL_HOST")
 	smtpPort := os.Getenv("MAIL_PORT")
 	mailUser := os.Getenv("MAIL_USR")
@@ -44,7 +44,7 @@ func SendHTMLMail(to []string, subject string, body interface{}, templatePath st
 	mail.SetHeader("To", to...)
 	mail.SetHeader("Subject", subject)
 	mail.SetBody("text/html", htmlString)
-	for _, v := range attachments {
+	for _, v := range attachmentsPath {
 		mail.Embed(v)
 	}
 	auth := smtp.PlainAuth("", mailUser, mailPasswd, smtpHost)

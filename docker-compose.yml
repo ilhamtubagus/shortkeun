@@ -35,3 +35,4 @@ services:
       # Expose port 6969
       - "27018:27017"
     restart: always
+    command: --quiet

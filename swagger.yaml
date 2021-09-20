@@ -1,52 +1,78 @@
-basePath: /v2
+basePath: /
 consumes:
-  - application/json
+- application/json
+definitions:
+  ValidationError:
+    properties:
+      field:
+        type: string
+        x-go-name: Field
+      message:
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/lib
 host: localhost
 info:
   contact:
-    email: john.doe@example.com
-    name: John Doe
-    url: http://john.doe.com
+    email: ilhamta27@gmail.com
+    name: Ilham Tubagus Arfian
+    url: https://github.com/ilhamtubagus
   description: |-
-    the purpose of this application is to provide an application
-    that is using plain go code to define an API
-
-    This should demonstrate all the possible comment annotations
-    that are available to turn go code into a fully compliant swagger 2.0 spec
+    Documentation for Shorkeun API.
+    Why do we need to shorten the URL? Is it something necessary?
+    Well, there are many advantages that shortening of URL provides.
+    A very basic advantage could be that users tend to make very few mistakes while copying the URL if it is not shortened.
+    Secondly, they surely save a lot of space when used or printed.
+    Moreover, it could be used if someone wishes not to use the original URL or want to hide the original one.
   license:
     name: MIT
     url: http://opensource.org/licenses/MIT
-  termsOfService:
-    there are no TOS at this moment, use at your own risk we take no
+  termsOfService: There are no TOS at this moment, use at your own risk we take no
     responsibility
-  title: Petstore API.
-  version: 0.0.1
-paths: {}
+  title: Shorkeun API.
+  version: 1.0.0
+paths:
+  /auth/signin/google:
+    post:
+      consumes:
+      - application/json
+      description: Sign in with user's google account
+      operationId: googleSignIn
+      produces:
+      - application/json
+      responses:
+        "422":
+          $ref: '#/responses/validationError'
+      security:
+      - JWT:
+        - '[]'
+      tags:
+      - auth
 produces:
-  - application/json
+- application/json
+responses:
+  defaultResponses:
+    description: ""
+    headers:
+      message:
+        description: The response message
+        type: string
+  validationError:
+    description: A ValidationError is an error that is used when the required input
+      fails validation.
+    schema:
+      items:
+        $ref: '#/definitions/ValidationError'
+      type: array
 schemes:
-  - http
-  - https
+- http
+- https
 security:
-  - jwt: []
+- JWT: []
 securityDefinitions:
-  jwt:
+  JWT:
     in: header
     name: Authorization
     type: bearer token
-  oauth2:
-    authorizationUrl: /oauth2/auth
-    flow: accessCode
-    in: header
-    scopes:
-      bar: foo
-    tokenUrl: /oauth2/token
-    type: oauth2
 swagger: "2.0"
-x-meta-array:
-  - value1
-  - value2
-x-meta-array-obj:
-  - name: obj
-    value: field
-x-meta-value: value

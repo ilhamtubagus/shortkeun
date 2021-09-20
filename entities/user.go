@@ -1,20 +1,30 @@
 package entities
 
 import (
+	"time"
+
 	"github.com/kamva/mgm/v3"
 )
 
+const RoleMember = "member"
+const RoleAdmin = "administrator"
+const StatusActive = "active"
+const StatusInactive = "inactive"
+
 type User struct {
-	mgm.DefaultModel  `bson:",inline"`
-	Email             string `json:"email"`
-	Name              string `json:"name"`
-	Password          string `json:"password,omitempty"`
-	Status            string `json:",omitempty"`
-	*GoogleCredential `json:",omitempty" bson:",omitempty"`
+	mgm.DefaultModel `bson:",inline"`
+	Email            string `json:"email"`
+	Name             string `json:"name"`
+	Password         string `json:"password,omitempty" bson:",omitempty"`
+	Status           string `json:",omitempty"`
+	Role             string `json:"role"`
+	// subject from google
+	Sub            string         `json:"sub" bson:"sub,omitempty"`
+	ActivationCode ActivationCode `json:"activation_code,omitempty" bson:"activation_code,omitempty"`
 }
 
-type GoogleCredential struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	IDToken      string `json:"id_token"`
+type ActivationCode struct {
+	Code     string    `json:"code" bson:"code"`
+	IssuedAt int64     `json:"issued_at" bson:"issued_at"`
+	ExpireAt time.Time `json:"expireAt" bson:"expireAt"`
 }

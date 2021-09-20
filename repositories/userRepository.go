@@ -11,15 +11,16 @@ type UserRepositories struct {
 	collection *mgm.Collection
 }
 
-func (c UserRepositories) AddNewUser(registrant *entities.User) (*entities.User, error) {
-	err := c.collection.Create(registrant)
+func (c UserRepositories) SaveUser(user *entities.User) error {
+	err := c.collection.Create(user)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return registrant, nil
+	return nil
 }
 func (c UserRepositories) FindUserByEmail(email string) (*entities.User, error) {
 	user := &entities.User{}
+	// err := c.collection.First(bson.M{operator.And: bson.A{bson.M{"email": email}, bson.M{"activation_code": bson.ErrDecodeToNil}}}, user)
 	err := c.collection.First(bson.M{"email": email}, user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
