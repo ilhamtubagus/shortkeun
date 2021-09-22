@@ -2,7 +2,7 @@ package dto
 
 type SignInRequestDefault struct {
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" valdate:"required,alphanum,min=8,max=25"`
+	Password string `json:"password" validate:"required,alphanum,min=8,max=25"`
 }
 type SignInRequestGoogle struct {
 	Credential string `json:"credential" validate:"required"`

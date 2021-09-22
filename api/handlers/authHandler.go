@@ -13,12 +13,54 @@ import (
 	"github.com/ilhamtubagus/urlShortener/email"
 	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
-	"github.com/ilhamtubagus/urlShortener/repositories"
+	"github.com/ilhamtubagus/urlShortener/repository"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthHandler struct {
-	userRepository repositories.UserRepositories
+	userRepository repository.UserRepositories
+}
+
+func (a AuthHandler) SignIn(c echo.Context) error {
+	var credential dto.SignInRequestDefault
+	err := c.Bind(&credential)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "failed to parse request body"})
+	}
+	//dto validation
+	if err := c.Validate(credential); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest,
+			&dto.ValidationErrorResponse{
+				Message: "Bad Request",
+				Errors:  lib.MapError(err)})
+	}
+	usr, err := a.userRepository.FindUserByEmail(credential.Email)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, &dto.DefaultResponse{Message: "unexpected database error"})
+	}
+	if usr == nil || usr.Password == "" {
+		return echo.NewHTTPError(http.StatusNotFound, &dto.DefaultResponse{Message: "user was not found"})
+	}
+	hasher := lib.NewBcryptHasher()
+	if err := hasher.CompareHash(credential.Password, usr.Password); err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, &dto.DefaultResponse{Message: "password does not match"})
+	}
+	hour, _ := strconv.Atoi(os.Getenv("TOKEN_EXP"))
+	claims := entities.Claims{
+		Role:   usr.Role,
+		Email:  usr.Email,
+		Status: usr.Status,
+		StandardClaims: jwt.StandardClaims{
+			//token expires within x hours
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
+			Subject:   usr.ID.String(),
+		}}
+	token, err := claims.GenerateJwt()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, &dto.DefaultResponse{Message: "unexpected server error"})
+	}
+	return c.JSON(200, &dto.SignInResponse{Message: "signin succeeded", Token: token})
 }
 
 // swagger:route POST /auth/signin/google auth googleSignIn
@@ -80,30 +122,6 @@ func (a AuthHandler) GoogleSignIn(c echo.Context) error {
 	}
 	return c.JSON(200, &dto.SignInResponse{Message: "signin succeeded", Token: token})
 }
-
-func (a AuthHandler) DefaultSignIn(c echo.Context) error {
-	return c.JSON(200, c.Path())
-}
-func sendEmailActivation(c echo.Context, user entities.User, now time.Time) {
-	//send email registration with activation code
-	ipE := echo.ExtractIPDirect()
-	pathToTemplate, _ := filepath.Abs("./email/template/registrationMail.html")
-	attachment, _ := filepath.Abs("./logo.png")
-	emailBody := email.RegistrationMailBody{
-		UserAgent: c.Request().UserAgent(),
-		IP:        ipE(c.Request()),
-		DateTime:  now.Format("Monday, 02-Jan-06 15:04:05 MST"),
-		Code:      user.ActivationCode.Code,
-	}
-	// asynchronously send email registration
-	go func() {
-		err := lib.SendHTMLMail([]string{user.Email}, "Activate Your Account", emailBody, pathToTemplate, []string{attachment})
-		if err != nil {
-			c.Logger().Error(fmt.Sprintf("failed to send email registration to %s", user.Email))
-		}
-	}()
-
-}
 func (a AuthHandler) Register(c echo.Context) error {
 	//dto binding
 	registrant := new(dto.RegisterRequest)
@@ -120,8 +138,6 @@ func (a AuthHandler) Register(c echo.Context) error {
 	}
 	// domain validation
 	// email must be unique for each users
-	//
-
 	if user, err := a.userRepository.FindUserByEmail(registrant.Email); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	} else if user != nil {
@@ -150,14 +166,31 @@ func (a AuthHandler) Register(c echo.Context) error {
 		Status:   entities.StatusInactive,
 		ActivationCode: entities.ActivationCode{
 			Code:     activationCode,
-			IssuedAt: now.Local().Unix(),
-			ExpireAt: now.Add(time.Minute * 5).Local()},
+			IssuedAt: now.Unix(),
+			ExpireAt: now.Add(time.Minute * 5)},
 	}
 	err = a.userRepository.SaveUser(user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	sendEmailActivation(c, *user, now)
+	//send email registration with activation code
+	ipE := echo.ExtractIPDirect()
+	pathToTemplate, _ := filepath.Abs("./email/template/registrationMail.html")
+	attachment, _ := filepath.Abs("./logo.png")
+	emailBody := email.RegistrationMailBody{
+		UserAgent: c.Request().UserAgent(),
+		IP:        ipE(c.Request()),
+		DateTime:  now.Format("Monday, 02-Jan-06 15:04:05 MST"),
+		Code:      user.ActivationCode.Code,
+		ExpireAt:  user.ActivationCode.ExpireAt.Format("Monday, 02-Jan-06 15:04:05 MST"),
+	}
+	// asynchronously send email registration
+	go func() {
+		err := lib.SendHTMLMail([]string{user.Email}, "Activate Your Account", emailBody, pathToTemplate, []string{attachment})
+		if err != nil {
+			c.Logger().Error(fmt.Sprintf("failed to send email registration to %s", user.Email))
+		}
+	}()
 	return c.JSON(http.StatusCreated, dto.DefaultResponse{Message: "registration succeeded"})
 }
 
@@ -179,10 +212,16 @@ func (ah AuthHandler) RequestActivationCode(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if user == nil {
-		return echo.NewHTTPError(http.StatusNotFound, dto.DefaultResponse{Message: "user's with this email address was not found"})
+		return echo.NewHTTPError(http.StatusNotFound, dto.DefaultResponse{Message: "user with this email address was not found"})
 	}
 	if user.ActivationCode.ExpireAt.Before(time.Now()) {
 		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "the previous activation code has not been expired"})
+	}
+	if user.Status == entities.StatusSuspended {
+		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "user with this email address is suspended, please contact administrator for further information"})
+	}
+	if user.Status == entities.StatusActive {
+		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "user with this email address has already been activated"})
 	}
 	// issue new activation code
 	now := time.Now()
@@ -196,8 +235,25 @@ func (ah AuthHandler) RequestActivationCode(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	sendEmailActivation(c, *user, now)
-	return c.JSON(http.StatusCreated, dto.DefaultResponse{Message: "registration succeeded"})
+	//send email registration with activation code
+	ipE := echo.ExtractIPDirect()
+	pathToTemplate, _ := filepath.Abs("./email/template/activationMail.html")
+	attachment, _ := filepath.Abs("./logo.png")
+	emailBody := email.RegistrationMailBody{
+		UserAgent: c.Request().UserAgent(),
+		IP:        ipE(c.Request()),
+		DateTime:  now.Format("Monday, 02-Jan-06 15:04:05 MST"),
+		Code:      user.ActivationCode.Code,
+		ExpireAt:  user.ActivationCode.ExpireAt.Format("Monday, 02-Jan-06 15:04:05 MST"),
+	}
+	// asynchronously send email registration
+	go func() {
+		err := lib.SendHTMLMail([]string{user.Email}, "Activate Your Account", emailBody, pathToTemplate, []string{attachment})
+		if err != nil {
+			c.Logger().Error(fmt.Sprintf("failed to send email registration to %s", user.Email))
+		}
+	}()
+	return c.JSON(http.StatusCreated, dto.DefaultResponse{Message: "activation code sent"})
 }
 func (ah AuthHandler) ActivateAccount(c echo.Context) error {
 	accountActivationReq := new(dto.AccountActivationRequest)
@@ -214,6 +270,8 @@ func (ah AuthHandler) ActivateAccount(c echo.Context) error {
 	fmt.Println(accountActivationReq)
 	return nil
 }
-func NewAuthHandler(userRepository repositories.UserRepositories) AuthHandler {
+
+// todo refresh token
+func NewAuthHandler(userRepository repository.UserRepositories) AuthHandler {
 	return AuthHandler{userRepository: userRepository}
 }

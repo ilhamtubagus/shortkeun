@@ -5,7 +5,7 @@ import (
 	"github.com/ilhamtubagus/urlShortener/api/handlers"
 	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
-	"github.com/ilhamtubagus/urlShortener/repositories"
+	"github.com/ilhamtubagus/urlShortener/repository"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
 )
@@ -18,7 +18,7 @@ func StartApp(e *echo.Echo) {
 	userCollection := mgm.Coll(new(entities.User))
 
 	//repositories instantiation
-	userRepository := repositories.NewUserRepository(userCollection)
+	userRepository := repository.NewUserRepository(userCollection)
 
 	//handlers instantiation
 	authHandler := handlers.NewAuthHandler(userRepository)
@@ -35,6 +35,7 @@ func StartApp(e *echo.Echo) {
 	redocMiddleware := middleware.Redoc(opts, nil)
 	eRedocMiddleware := echo.WrapHandler(redocMiddleware)
 	e.GET("/docs", eRedocMiddleware)
+	e.POST("/auth/signin", authHandler.SignIn)
 	e.POST("/auth/signin/google", authHandler.GoogleSignIn)
 	e.PATCH("/auth/signin/activation-code", authHandler.RequestActivationCode)
 	e.POST("/auth/signin/activation-code", authHandler.ActivateAccount)

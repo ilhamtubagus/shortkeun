@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"github.com/ilhamtubagus/urlShortener/entities"
@@ -7,6 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type UserRepository interface {
+	SaveUser(user *entities.User) error
+	FindUserByEmail(email string) (*entities.User, error)
+}
 type UserRepositories struct {
 	collection *mgm.Collection
 }

@@ -10,6 +10,7 @@ const RoleMember = "member"
 const RoleAdmin = "administrator"
 const StatusActive = "active"
 const StatusInactive = "inactive"
+const StatusSuspended = "suspended"
 
 type User struct {
 	mgm.DefaultModel `bson:",inline"`

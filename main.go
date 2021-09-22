@@ -14,6 +14,7 @@ import (
 )
 
 func init() {
+	os.Setenv("TZ", "Asia/Jakarta")
 	//uncomment line below in production stage
 	lib.LoadEnv(".env")
 	// Setup the mgm default config

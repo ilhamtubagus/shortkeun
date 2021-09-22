@@ -5,4 +5,5 @@ type RegistrationMailBody struct {
 	IP        string
 	DateTime  string
 	Code      string
+	ExpireAt  string
 }

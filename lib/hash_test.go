@@ -27,8 +27,7 @@ func TestCompareHash(t *testing.T) {
 	hashed, err := hasher.MakeHash(plain)
 	assert.Empty(t, err, "error should be empty")
 	assert.NotEmpty(t, hashed, "hashed string should not be empty")
-	result, err := hasher.CompareHash(plain, *hashed)
-	assert.Equal(t, true, result, "should true")
+	err = hasher.CompareHash(plain, *hashed)
 	assert.Empty(t, err, "error should be empty")
 }
 
@@ -39,7 +38,6 @@ func TestCompareHashErr(t *testing.T) {
 	assert.Empty(t, err, "error should be empty")
 	assert.NotEmpty(t, hashed, "hashed string should not be empty")
 	rPlain := "someRandomstringplain"
-	result, err := hasher.CompareHash(rPlain, *hashed)
-	assert.Equal(t, false, result, "should false")
+	err = hasher.CompareHash(rPlain, *hashed)
 	assert.NotEmpty(t, err, "error should not be empty")
 }

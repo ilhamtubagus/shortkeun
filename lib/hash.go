@@ -8,7 +8,7 @@ import (
 
 type Hasher interface {
 	MakeHash(plain string) (*string, error)
-	CompareHash(plain, hashToCompare string) (bool, error)
+	CompareHash(plain, hashToCompare string) error
 }
 type BcryptHasher struct {
 }
@@ -21,13 +21,8 @@ func (b BcryptHasher) MakeHash(plain string) (*string, error) {
 	hashedTxt := string(bytes)
 	return &hashedTxt, err
 }
-func (b BcryptHasher) CompareHash(plain, hashToCompare string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(hashToCompare), []byte(plain))
-	if err != nil {
-		return false, err
-	} else {
-		return true, nil
-	}
+func (b BcryptHasher) CompareHash(plain, hashToCompare string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashToCompare), []byte(plain))
 }
 func NewBcryptHasher() Hasher {
 	return &BcryptHasher{}
