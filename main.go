@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/ilhamtubagus/urlShortener/api"
 	"github.com/ilhamtubagus/urlShortener/lib"
@@ -14,11 +15,17 @@ import (
 )
 
 func init() {
-	os.Setenv("TZ", "Asia/Jakarta")
+	_, err := time.LoadLocation("Jakarta")
+	if err != nil {
+		fmt.Println(err)
+	}
+	if lib.JakartaTime, err = time.LoadLocation("Asia/Jakarta"); err != nil {
+		panic("Error loading '" + "Asia/Jakarta" + "' as timezone location: " + err.Error())
+	}
 	//uncomment line below in production stage
 	lib.LoadEnv(".env")
 	// Setup the mgm default config
-	err := mgm.SetDefaultConfig(nil, "url-shortener", options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	err = mgm.SetDefaultConfig(nil, "url-shortener", options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
 		log.Fatal("Error while initializing database connections " + err.Error())
 	}

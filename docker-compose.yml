@@ -33,6 +33,6 @@ services:
       - ./mongodata:/data/db
     ports:
       # Expose port 6969
-      - "27018:27017"
+      - "27019:27017"
     restart: always
     command: --quiet

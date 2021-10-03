@@ -18,7 +18,7 @@ import (
 )
 
 type AuthHandler struct {
-	userRepository repository.UserRepositories
+	userRepository repository.UserRepository
 }
 
 func (a AuthHandler) SignIn(c echo.Context) error {
@@ -74,6 +74,7 @@ func (a AuthHandler) SignIn(c echo.Context) error {
 // 	422: validationError
 //	Security:
 //	- JWT: []
+// GoogleSignIn handle sign in request with google account. If user has not registered then registration process will be performed.
 func (a AuthHandler) GoogleSignIn(c echo.Context) error {
 	var credential dto.SignInRequestGoogle
 	err := c.Bind(&credential)
@@ -100,7 +101,7 @@ func (a AuthHandler) GoogleSignIn(c echo.Context) error {
 	if usr == nil {
 		//insert new user into database
 		usr = &entities.User{Name: googleTokenInfo.Name, Email: googleTokenInfo.Email, Sub: googleTokenInfo.Sub, Status: entities.StatusActive, Role: entities.RoleMember}
-		err := a.userRepository.SaveUser(usr)
+		err := a.userRepository.CreateUser(usr)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, &dto.DefaultResponse{Message: "Unexpected database error"})
 		}
@@ -122,6 +123,8 @@ func (a AuthHandler) GoogleSignIn(c echo.Context) error {
 	}
 	return c.JSON(200, &dto.SignInResponse{Message: "signin succeeded", Token: token})
 }
+
+// Register handle new request for default registration with email address. The user will be given a code for account activation.
 func (a AuthHandler) Register(c echo.Context) error {
 	//dto binding
 	registrant := new(dto.RegisterRequest)
@@ -164,12 +167,12 @@ func (a AuthHandler) Register(c echo.Context) error {
 		Password: *hashedPassword,
 		Role:     entities.RoleMember,
 		Status:   entities.StatusInactive,
-		ActivationCode: entities.ActivationCode{
+		ActivationCode: &entities.ActivationCode{
 			Code:     activationCode,
-			IssuedAt: now.Unix(),
+			IssuedAt: now,
 			ExpireAt: now.Add(time.Minute * 5)},
 	}
-	err = a.userRepository.SaveUser(user)
+	err = a.userRepository.CreateUser(user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -194,6 +197,8 @@ func (a AuthHandler) Register(c echo.Context) error {
 	return c.JSON(http.StatusCreated, dto.DefaultResponse{Message: "registration succeeded"})
 }
 
+// RequestActivationCode handle new request code activation from user.
+// If the previous activation code has not been expired or user's status is suspended or user's status is active then it will return errors.
 func (ah AuthHandler) RequestActivationCode(c echo.Context) error {
 	requestCodeAct := new(dto.RequestCodeActivation)
 	if err := c.Bind(&requestCodeAct); err != nil {
@@ -206,7 +211,6 @@ func (ah AuthHandler) RequestActivationCode(c echo.Context) error {
 				Message: "Bad Request",
 				Errors:  lib.MapError(err)})
 	}
-	fmt.Println(requestCodeAct)
 	user, err := ah.userRepository.FindUserByEmail(requestCodeAct.Email)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -214,25 +218,29 @@ func (ah AuthHandler) RequestActivationCode(c echo.Context) error {
 	if user == nil {
 		return echo.NewHTTPError(http.StatusNotFound, dto.DefaultResponse{Message: "user with this email address was not found"})
 	}
-	if user.ActivationCode.ExpireAt.Before(time.Now()) {
-		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "the previous activation code has not been expired"})
-	}
 	if user.Status == entities.StatusSuspended {
 		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "user with this email address is suspended, please contact administrator for further information"})
 	}
 	if user.Status == entities.StatusActive {
 		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "user with this email address has already been activated"})
 	}
+	if user.ActivationCode != nil {
+		if user.ActivationCode.ExpireAt.In(time.Now().Location()).After(time.Now()) {
+			return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "the previous activation code has not been expired"})
+		}
+	}
+
 	// issue new activation code
 	now := time.Now()
 	activationCode := lib.RandString(5)
-	user.ActivationCode = entities.ActivationCode{
+	user.ActivationCode = &entities.ActivationCode{
 		Code:     activationCode,
-		IssuedAt: now.Unix(),
+		IssuedAt: now,
 		ExpireAt: now.Add(5 * time.Minute),
 	}
-	err = ah.userRepository.SaveUser(user)
+	err = ah.userRepository.UpdateUser(user)
 	if err != nil {
+		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	//send email registration with activation code
@@ -255,23 +263,9 @@ func (ah AuthHandler) RequestActivationCode(c echo.Context) error {
 	}()
 	return c.JSON(http.StatusCreated, dto.DefaultResponse{Message: "activation code sent"})
 }
-func (ah AuthHandler) ActivateAccount(c echo.Context) error {
-	accountActivationReq := new(dto.AccountActivationRequest)
-	if err := c.Bind(&accountActivationReq); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, dto.DefaultResponse{Message: "failed to parse request body"})
-	}
-	// dto validation
-	if err := c.Validate(accountActivationReq); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest,
-			&dto.ValidationErrorResponse{
-				Message: "Bad Request",
-				Errors:  lib.MapError(err)})
-	}
-	fmt.Println(accountActivationReq)
-	return nil
-}
 
 // todo refresh token
-func NewAuthHandler(userRepository repository.UserRepositories) AuthHandler {
+
+func NewAuthHandler(userRepository repository.UserRepository) AuthHandler {
 	return AuthHandler{userRepository: userRepository}
 }

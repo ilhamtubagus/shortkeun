@@ -38,6 +38,5 @@ func StartApp(e *echo.Echo) {
 	e.POST("/auth/signin", authHandler.SignIn)
 	e.POST("/auth/signin/google", authHandler.GoogleSignIn)
 	e.PATCH("/auth/signin/activation-code", authHandler.RequestActivationCode)
-	e.POST("/auth/signin/activation-code", authHandler.ActivateAccount)
 	e.POST("/auth/register", authHandler.Register)
 }

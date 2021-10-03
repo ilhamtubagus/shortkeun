@@ -8,21 +8,30 @@ import (
 )
 
 type UserRepository interface {
-	SaveUser(user *entities.User) error
+	CreateUser(user *entities.User) error
+	UpdateUser(user *entities.User) error
 	FindUserByEmail(email string) (*entities.User, error)
 }
-type UserRepositories struct {
+type userRepository struct {
 	collection *mgm.Collection
 }
 
-func (c UserRepositories) SaveUser(user *entities.User) error {
+func (c userRepository) CreateUser(user *entities.User) error {
 	err := c.collection.Create(user)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (c UserRepositories) FindUserByEmail(email string) (*entities.User, error) {
+func (c userRepository) UpdateUser(user *entities.User) error {
+	err := c.collection.Update(user)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+func (c userRepository) FindUserByEmail(email string) (*entities.User, error) {
 	user := &entities.User{}
 	// err := c.collection.First(bson.M{operator.And: bson.A{bson.M{"email": email}, bson.M{"activation_code": bson.ErrDecodeToNil}}}, user)
 	err := c.collection.First(bson.M{"email": email}, user)
@@ -35,6 +44,6 @@ func (c UserRepositories) FindUserByEmail(email string) (*entities.User, error) 
 	return user, nil
 }
 
-func NewUserRepository(c *mgm.Collection) UserRepositories {
-	return UserRepositories{c}
+func NewUserRepository(c *mgm.Collection) userRepository {
+	return userRepository{c}
 }
