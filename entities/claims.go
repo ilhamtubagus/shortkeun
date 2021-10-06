@@ -10,6 +10,13 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+// swagger:model
+type Token struct {
+	// access token
+	AccessToken string `json:"access_token"`
+	// refresh token
+	RefreshToken string `json:"refresh_token"`
+}
 type Claims struct {
 	Role   string `json:"role"`
 	Email  string `json:"email"`
@@ -20,13 +27,13 @@ type Claims struct {
 func (c Claims) IsUserAdmin() bool {
 	return strings.EqualFold(c.Role, "admin")
 }
-func (c Claims) GenerateJwt() (map[string]string, error) {
+func (c Claims) GenerateJwt() (*Token, error) {
 	secret := os.Getenv("TOKEN_SECRET")
 	if secret == "" {
 		return nil, errors.New("token secret has not been set")
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	signedToken, error := token.SignedString([]byte(secret))
+	signedAccessToken, error := token.SignedString([]byte(secret))
 	if error != nil {
 		return nil, error
 	}
@@ -41,7 +48,7 @@ func (c Claims) GenerateJwt() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return map[string]string{"access_token": signedToken, "refresh_token": signedRefreshToken}, nil
+	return &Token{AccessToken: signedAccessToken, RefreshToken: signedRefreshToken}, nil
 }
 func BuildMapClaims(mapClaims jwt.MapClaims) (*Claims, error) {
 	bytes, errs := json.Marshal(mapClaims)

@@ -17,11 +17,9 @@
 //     - application/json
 // 		Produces:
 //     - application/json
-//     Security:
-//     - JWT:
 //     SecurityDefinitions:
-//     JWT:
-//          type: bearer token
+//     Bearer-Token:
+//          type: apiKey
 //          name: Authorization
 //          in: header
 // swagger:meta

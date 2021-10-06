@@ -2,6 +2,98 @@ basePath: /
 consumes:
 - application/json
 definitions:
+  ActivationCodeRequestBody:
+    description: 'swagger: model'
+    properties:
+      email:
+        description: email
+        format: email
+        type: string
+        x-go-name: Email
+    required:
+    - email
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
+  DefaultResponseBody:
+    properties:
+      message:
+        description: The response message
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
+  GoogleSignInRequestBody:
+    properties:
+      credential:
+        description: contain JWT ID Token obtained from google
+        type: string
+        x-go-name: Credential
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
+  RegistrationRequestBody:
+    properties:
+      confirm_password:
+        description: must be equal with password
+        maxLength: 25
+        minLength: 8
+        type: string
+        x-go-name: ConfirmPassword
+      email:
+        description: email
+        format: email
+        type: string
+        x-go-name: Email
+      name:
+        description: users fullname
+        maxLength: 30
+        type: string
+        x-go-name: Name
+      password:
+        description: password
+        maxLength: 25
+        minLength: 8
+        type: string
+        x-go-name: Password
+    required:
+    - name
+    - email
+    - password
+    - confirm_password
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
+  SignInRequestDefaultBody:
+    properties:
+      email:
+        type: string
+        x-go-name: Email
+      password:
+        type: string
+        x-go-name: Password
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
+  SignInResponseBody:
+    properties:
+      message:
+        description: The response message
+        example: signin succeeded
+        type: string
+        x-go-name: Message
+      token:
+        $ref: '#/definitions/Token'
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
+  Token:
+    properties:
+      access_token:
+        description: access token
+        type: string
+        x-go-name: AccessToken
+      refresh_token:
+        description: refresh token
+        type: string
+        x-go-name: RefreshToken
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/entities
   ValidationError:
     properties:
       field:
@@ -12,6 +104,20 @@ definitions:
         x-go-name: Message
     type: object
     x-go-package: github.com/ilhamtubagus/urlShortener/lib
+  ValidationErrorResponseBody:
+    properties:
+      errors:
+        description: Field errors with its messages
+        items:
+          $ref: '#/definitions/ValidationError'
+        type: array
+        x-go-name: Errors
+      message:
+        description: The message
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
 host: localhost
 info:
   contact:
@@ -33,46 +139,145 @@ info:
   title: Shorkeun API.
   version: 1.0.0
 paths:
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Sign in with email and password
+      operationId: signIn
+      parameters:
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/SignInRequestDefaultBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          $ref: '#/responses/signInResponse'
+        "400":
+          $ref: '#/responses/defaultResponse'
+        "404":
+          $ref: '#/responses/defaultResponse'
+        "422":
+          $ref: '#/responses/validationError'
+        "500":
+          $ref: '#/responses/defaultResponse'
+      summary: Sign in (default)
+      tags:
+      - auth
+  /auth/signin/activation-code:
+    post:
+      consumes:
+      - application/json
+      description: Get new activation code for account activation purpose if the previous
+        activation code has been expired.
+      operationId: getActivationCode
+      parameters:
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/ActivationCodeRequestBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          $ref: '#/responses/defaultResponse'
+        "400":
+          $ref: '#/responses/defaultResponse'
+        "404":
+          $ref: '#/responses/defaultResponse'
+        "422":
+          $ref: '#/responses/validationError'
+        "500":
+          $ref: '#/responses/defaultResponse'
+      summary: Get new activation code
+      tags:
+      - auth
   /auth/signin/google:
     post:
       consumes:
       - application/json
-      description: Sign in with user's google account
+      description: |-
+        Sign in with google account.
+        If user has not registered then registration process will be performed.
       operationId: googleSignIn
+      parameters:
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/GoogleSignInRequestBody'
       produces:
       - application/json
       responses:
+        "200":
+          $ref: '#/responses/signInResponse'
+        "400":
+          $ref: '#/responses/defaultResponse'
+        "404":
+          $ref: '#/responses/defaultResponse'
         "422":
           $ref: '#/responses/validationError'
-      security:
-      - JWT:
-        - '[]'
+        "500":
+          $ref: '#/responses/defaultResponse'
+      summary: Sign in with google account
+      tags:
+      - auth
+  /auth/signin/register:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Register new account with email and password.
+        User will be given a code for account activation via email after registration has been performed.
+      operationId: register
+      parameters:
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/RegistrationRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          $ref: '#/responses/defaultResponse'
+        "400":
+          $ref: '#/responses/defaultResponse'
+        "404":
+          $ref: '#/responses/defaultResponse'
+        "422":
+          $ref: '#/responses/validationError'
+        "500":
+          $ref: '#/responses/defaultResponse'
+      summary: Register new account
       tags:
       - auth
 produces:
 - application/json
 responses:
-  defaultResponses:
-    description: ""
-    headers:
-      message:
-        description: The response message
-        type: string
+  defaultResponse:
+    description: A default response with message that describe the response result
+    schema:
+      $ref: '#/definitions/DefaultResponseBody'
+  signInResponse:
+    description: A response when user's successfully signed in
+    schema:
+      $ref: '#/definitions/SignInResponseBody'
   validationError:
     description: A ValidationError is an error that is used when the required input
       fails validation.
     schema:
-      items:
-        $ref: '#/definitions/ValidationError'
-      type: array
+      $ref: '#/definitions/ValidationErrorResponseBody'
 schemes:
 - http
 - https
-security:
-- JWT: []
 securityDefinitions:
-  JWT:
+  Bearer-Token:
     in: header
     name: Authorization
-    type: bearer token
+    type: apiKey
 swagger: "2.0"
