@@ -31,6 +31,7 @@ import (
 	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
 	"github.com/ilhamtubagus/urlShortener/repository"
+	"github.com/ilhamtubagus/urlShortener/service"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
 )
@@ -45,8 +46,12 @@ func StartApp(e *echo.Echo) {
 	//repositories instantiation
 	userRepository := repository.NewUserRepository(userCollection)
 
+	//libs instantiation
+	bcrypHasher := lib.NewBcryptHasher()
+	//services instantiation
+	authService := service.NewAuthService(userRepository, bcrypHasher)
 	//handlers instantiation
-	authHandler := handlers.NewAuthHandler(userRepository)
+	authHandler := handlers.NewAuthHandler(authService)
 	userHandler := handlers.NewUserHandler(userRepository)
 
 	//routes definition

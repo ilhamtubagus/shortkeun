@@ -43,6 +43,7 @@ func (uh UserHandler) ActivateAccount(c echo.Context) error {
 	}
 	// check if activation_code present in users collection
 	// check if activation_code is equals with activation_code found in users collection
+
 	return c.JSON(200, accountActivationReq)
 }
 

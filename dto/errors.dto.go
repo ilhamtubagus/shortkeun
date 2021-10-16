@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/ilhamtubagus/urlShortener/lib"
+import (
+	"github.com/ilhamtubagus/urlShortener/lib"
+)
 
 // A ValidationError is an error that is used when the required input fails validation.
 // swagger:response validationError
@@ -19,4 +21,16 @@ type ValidationErrorResponseBody struct {
 
 func NewValidationError(msg string, err *[]lib.ValidationError) *ValidationErrorResponseBody {
 	return &ValidationErrorResponseBody{msg, err}
+}
+
+type ApiError struct {
+	StatusCode int
+	Err        error
+}
+
+func NewApiError(code int, err error) *ApiError {
+	return &ApiError{
+		StatusCode: code,
+		Err:        err,
+	}
 }
