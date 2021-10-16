@@ -6,11 +6,11 @@ import (
 	"github.com/kamva/mgm/v3"
 )
 
-const RoleMember = "member"
-const RoleAdmin = "administrator"
-const StatusActive = "active"
-const StatusInactive = "inactive"
-const StatusSuspended = "suspended"
+const RoleMember = "MEMBER"
+const RoleAdmin = "ADMINISTRATOR"
+const StatusActive = "ACTIVE"
+const StatusInactive = "INACTIVE"
+const StatusSuspended = "SUSPENDED"
 
 type User struct {
 	mgm.DefaultModel `bson:",inline"`

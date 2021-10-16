@@ -2,6 +2,17 @@ basePath: /
 consumes:
 - application/json
 definitions:
+  AccountActivationRequestBody:
+    properties:
+      activation_code:
+        description: activation code obtained from registration process (sent via
+          email)
+        type: string
+        x-go-name: ActivationCode
+    required:
+    - activation_code
+    type: object
+    x-go-package: github.com/ilhamtubagus/urlShortener/dto
   ActivationCodeRequestBody:
     description: 'swagger: model'
     properties:
@@ -256,6 +267,37 @@ paths:
       summary: Register new account
       tags:
       - auth
+  /user/status:
+    patch:
+      consumes:
+      - application/json
+      description: Activate user's account with activation code sent via email. User's
+        status will change to "ACTIVE"
+      operationId: accountActivation
+      parameters:
+      - in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/AccountActivationRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          $ref: '#/responses/signInResponse'
+        "400":
+          $ref: '#/responses/defaultResponse'
+        "404":
+          $ref: '#/responses/defaultResponse'
+        "422":
+          $ref: '#/responses/validationError'
+        "500":
+          $ref: '#/responses/defaultResponse'
+      security:
+      - Bearer-Token: []
+      summary: Account activation
+      tags:
+      - user
 produces:
 - application/json
 responses:

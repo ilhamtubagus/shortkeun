@@ -3,6 +3,7 @@ package dto
 // swagger:parameters accountActivation
 type AccountActivationRequest struct {
 	// in: body
+	// required: true
 	Body AccountActivationRequestBody
 }
 
