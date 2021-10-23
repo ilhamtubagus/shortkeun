@@ -1,20 +1,21 @@
 basePath: /
 consumes:
-- application/json
+  - application/json
 definitions:
   AccountActivationRequestBody:
     properties:
       activation_code:
-        description: activation code obtained from registration process (sent via
+        description:
+          activation code obtained from registration process (sent via
           email)
         type: string
         x-go-name: ActivationCode
     required:
-    - activation_code
+      - activation_code
     type: object
     x-go-package: github.com/ilhamtubagus/urlShortener/dto
   ActivationCodeRequestBody:
-    description: 'swagger: model'
+    description: "swagger: model"
     properties:
       email:
         description: email
@@ -22,7 +23,7 @@ definitions:
         type: string
         x-go-name: Email
     required:
-    - email
+      - email
     type: object
     x-go-package: github.com/ilhamtubagus/urlShortener/dto
   DefaultResponseBody:
@@ -66,10 +67,10 @@ definitions:
         type: string
         x-go-name: Password
     required:
-    - name
-    - email
-    - password
-    - confirm_password
+      - name
+      - email
+      - password
+      - confirm_password
     type: object
     x-go-package: github.com/ilhamtubagus/urlShortener/dto
   SignInRequestDefaultBody:
@@ -90,7 +91,7 @@ definitions:
         type: string
         x-go-name: Message
       token:
-        $ref: '#/definitions/Token'
+        $ref: "#/definitions/Token"
     type: object
     x-go-package: github.com/ilhamtubagus/urlShortener/dto
   Token:
@@ -120,7 +121,7 @@ definitions:
       errors:
         description: Field errors with its messages
         items:
-          $ref: '#/definitions/ValidationError'
+          $ref: "#/definitions/ValidationError"
         type: array
         x-go-name: Errors
       message:
@@ -145,7 +146,8 @@ info:
   license:
     name: MIT
     url: http://opensource.org/licenses/MIT
-  termsOfService: There are no TOS at this moment, use at your own risk we take no
+  termsOfService:
+    There are no TOS at this moment, use at your own risk we take no
     responsibility
   title: Shorkeun API.
   version: 1.0.0
@@ -153,170 +155,173 @@ paths:
   /auth/signin:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Sign in with email and password
       operationId: signIn
       parameters:
-      - in: body
-        name: Body
-        required: true
-        schema:
-          $ref: '#/definitions/SignInRequestDefaultBody'
+        - in: body
+          name: Body
+          required: true
+          schema:
+            $ref: "#/definitions/SignInRequestDefaultBody"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
-          $ref: '#/responses/signInResponse'
+          $ref: "#/responses/signInResponse"
         "400":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "404":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "422":
-          $ref: '#/responses/validationError'
+          $ref: "#/responses/validationError"
         "500":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
       summary: Sign in (default)
       tags:
-      - auth
+        - auth
   /auth/signin/activation-code:
     post:
       consumes:
-      - application/json
-      description: Get new activation code for account activation purpose if the previous
+        - application/json
+      description:
+        Get new activation code for account activation purpose if the previous
         activation code has been expired.
       operationId: getActivationCode
       parameters:
-      - in: body
-        name: Body
-        required: true
-        schema:
-          $ref: '#/definitions/ActivationCodeRequestBody'
+        - in: body
+          name: Body
+          required: true
+          schema:
+            $ref: "#/definitions/ActivationCodeRequestBody"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "400":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "404":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "422":
-          $ref: '#/responses/validationError'
+          $ref: "#/responses/validationError"
         "500":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
       summary: Get new activation code
       tags:
-      - auth
+        - auth
   /auth/signin/google:
     post:
       consumes:
-      - application/json
+        - application/json
       description: |-
         Sign in with google account.
         If user has not registered then registration process will be performed.
       operationId: googleSignIn
       parameters:
-      - in: body
-        name: Body
-        required: true
-        schema:
-          $ref: '#/definitions/GoogleSignInRequestBody'
+        - in: body
+          name: Body
+          required: true
+          schema:
+            $ref: "#/definitions/GoogleSignInRequestBody"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
-          $ref: '#/responses/signInResponse'
+          $ref: "#/responses/signInResponse"
         "400":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "404":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "422":
-          $ref: '#/responses/validationError'
+          $ref: "#/responses/validationError"
         "500":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
       summary: Sign in with google account
       tags:
-      - auth
+        - auth
   /auth/signin/register:
     post:
       consumes:
-      - application/json
+        - application/json
       description: |-
         Register new account with email and password.
         User will be given a code for account activation via email after registration has been performed.
       operationId: register
       parameters:
-      - in: body
-        name: Body
-        required: true
-        schema:
-          $ref: '#/definitions/RegistrationRequestBody'
+        - in: body
+          name: Body
+          required: true
+          schema:
+            $ref: "#/definitions/RegistrationRequestBody"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "400":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "404":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "422":
-          $ref: '#/responses/validationError'
+          $ref: "#/responses/validationError"
         "500":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
       summary: Register new account
       tags:
-      - auth
+        - auth
   /user/status:
     patch:
       consumes:
-      - application/json
-      description: Activate user's account with activation code sent via email. User's
-        status will change to "ACTIVE"
+        - application/json
+      description:
+        Activate user's account with activation code sent via email. User's
+        status will change to "ACTIVE".
       operationId: accountActivation
       parameters:
-      - in: body
-        name: Body
-        required: true
-        schema:
-          $ref: '#/definitions/AccountActivationRequestBody'
+        - in: body
+          name: Body
+          required: true
+          schema:
+            $ref: "#/definitions/AccountActivationRequestBody"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
-          $ref: '#/responses/signInResponse'
+          $ref: "#/responses/signInResponse"
         "400":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "404":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
         "422":
-          $ref: '#/responses/validationError'
+          $ref: "#/responses/validationError"
         "500":
-          $ref: '#/responses/defaultResponse'
+          $ref: "#/responses/defaultResponse"
       security:
-      - Bearer-Token: []
+        - Bearer-Token: []
       summary: Account activation
       tags:
-      - user
+        - user
 produces:
-- application/json
+  - application/json
 responses:
   defaultResponse:
     description: A default response with message that describe the response result
     schema:
-      $ref: '#/definitions/DefaultResponseBody'
+      $ref: "#/definitions/DefaultResponseBody"
   signInResponse:
     description: A response when user's successfully signed in
     schema:
-      $ref: '#/definitions/SignInResponseBody'
+      $ref: "#/definitions/SignInResponseBody"
   validationError:
-    description: A ValidationError is an error that is used when the required input
-      fails validation.
+    description:
+      An error response that is used when the required input fails the
+      validation.
     schema:
-      $ref: '#/definitions/ValidationErrorResponseBody'
+      $ref: "#/definitions/ValidationErrorResponseBody"
 schemes:
-- http
-- https
+  - http
+  - https
 securityDefinitions:
   Bearer-Token:
     in: header

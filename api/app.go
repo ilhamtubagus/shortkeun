@@ -26,8 +26,9 @@
 package api
 
 import (
-	middleware "github.com/go-openapi/runtime/middleware"
+	runtimeMiddleware "github.com/go-openapi/runtime/middleware"
 	"github.com/ilhamtubagus/urlShortener/api/handlers"
+	"github.com/ilhamtubagus/urlShortener/api/middleware"
 	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
 	"github.com/ilhamtubagus/urlShortener/repository"
@@ -50,9 +51,10 @@ func StartApp(e *echo.Echo) {
 	bcrypHasher := lib.NewBcryptHasher()
 	//services instantiation
 	authService := service.NewAuthService(userRepository, bcrypHasher)
+	userService := service.NewUserService(userRepository)
 	//handlers instantiation
 	authHandler := handlers.NewAuthHandler(authService)
-	userHandler := handlers.NewUserHandler(userRepository)
+	userHandler := handlers.NewUserHandler(userService)
 
 	//routes definition
 	e.GET("", func(c echo.Context) error {
@@ -62,8 +64,8 @@ func StartApp(e *echo.Echo) {
 	e.GET("/swagger.yaml", func(c echo.Context) error {
 		return c.File("swagger.yaml")
 	})
-	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
-	redocMiddleware := middleware.Redoc(opts, nil)
+	opts := runtimeMiddleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	redocMiddleware := runtimeMiddleware.Redoc(opts, nil)
 	eRedocMiddleware := echo.WrapHandler(redocMiddleware)
 	e.GET("/docs", eRedocMiddleware)
 	// auth routes
@@ -72,5 +74,6 @@ func StartApp(e *echo.Echo) {
 	e.PATCH("/auth/signin/activation-code", authHandler.RequestActivationCode)
 	e.POST("/auth/register", authHandler.Register)
 	// user routes
-	e.PATCH("/user/status", userHandler.ActivateAccount)
+	u := e.Group("/user")
+	u.PATCH("/status", userHandler.ActivateAccount, middleware.IsAuthenticated, middleware.IsMember)
 }

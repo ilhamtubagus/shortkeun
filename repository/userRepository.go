@@ -11,6 +11,7 @@ type UserRepository interface {
 	CreateUser(user *entities.User) error
 	UpdateUser(user *entities.User) error
 	FindUserByEmail(email string) (*entities.User, error)
+	FindUserById(id string) (*entities.User, error)
 }
 type userRepository struct {
 	collection *mgm.Collection
@@ -35,6 +36,18 @@ func (c userRepository) FindUserByEmail(email string) (*entities.User, error) {
 	user := &entities.User{}
 	// err := c.collection.First(bson.M{operator.And: bson.A{bson.M{"email": email}, bson.M{"activation_code": bson.ErrDecodeToNil}}}, user)
 	err := c.collection.First(bson.M{"email": email}, user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+func (c userRepository) FindUserById(id string) (*entities.User, error) {
+	user := &entities.User{}
+	err := c.collection.FindByID(id, user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil

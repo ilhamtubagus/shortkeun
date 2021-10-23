@@ -31,8 +31,9 @@ services:
     volumes:
       # Attach dir ./mongodata into /data/db inside container
       - ./mongodata:/data/db
+      - ./mongod.conf:/etc/mongo/mongod.conf
     ports:
       # Expose port 6969
       - "27019:27017"
     restart: always
-    command: --quiet
+    command: --config /etc/mongo/mongod.conf

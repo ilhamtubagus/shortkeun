@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/ilhamtubagus/urlShortener/dto"
+	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
-	"github.com/ilhamtubagus/urlShortener/repository"
+	"github.com/ilhamtubagus/urlShortener/service"
 	"github.com/labstack/echo/v4"
 )
 
 type UserHandler struct {
-	userRepository repository.UserRepository
+	userService *service.UserService
 }
 
 // swagger:route PATCH /user/status user accountActivation
@@ -41,12 +42,17 @@ func (uh UserHandler) ActivateAccount(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest,
 			dto.NewValidationError("Bad Request", lib.MapError(err)))
 	}
-	// check if activation_code present in users collection
-	// check if activation_code is equals with activation_code found in users collection
+	user := c.Get("user")
+	claims, _ := user.(*entities.Claims)
+	userId := claims.UserId
+	appErr := uh.userService.ActivateAccount(userId, accountActivationReq.ActivationCode)
+	if appErr != nil {
+		return echo.NewHTTPError(appErr.StatusCode, dto.NewDefaultResponse(appErr.Err.Error()))
+	}
 
-	return c.JSON(200, accountActivationReq)
+	return c.JSON(http.StatusOK, dto.NewDefaultResponse("account activated"))
 }
 
-func NewUserHandler(userRepository repository.UserRepository) UserHandler {
-	return UserHandler{userRepository: userRepository}
+func NewUserHandler(userService *service.UserService) UserHandler {
+	return UserHandler{userService: userService}
 }

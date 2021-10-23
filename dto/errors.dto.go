@@ -4,7 +4,7 @@ import (
 	"github.com/ilhamtubagus/urlShortener/lib"
 )
 
-// A ValidationError is an error that is used when the required input fails validation.
+// An error response that is used when the required input fails the validation.
 // swagger:response validationError
 type ValidationErrorResponse struct {
 	// in:body

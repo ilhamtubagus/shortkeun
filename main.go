@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -15,17 +16,11 @@ import (
 )
 
 func init() {
-	_, err := time.LoadLocation("Jakarta")
-	if err != nil {
-		fmt.Println(err)
-	}
-	if lib.JakartaTime, err = time.LoadLocation("Asia/Jakarta"); err != nil {
-		panic("Error loading '" + "Asia/Jakarta" + "' as timezone location: " + err.Error())
-	}
+	rand.Seed(time.Now().UnixNano())
 	//uncomment line below in production stage
 	lib.LoadEnv(".env")
 	// Setup the mgm default config
-	err = mgm.SetDefaultConfig(nil, "url-shortener", options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	err := mgm.SetDefaultConfig(nil, "url-shortener", options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
 		log.Fatal("Error while initializing database connections " + err.Error())
 	}

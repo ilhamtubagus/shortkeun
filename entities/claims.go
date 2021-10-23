@@ -18,6 +18,7 @@ type Token struct {
 	RefreshToken string `json:"refresh_token"`
 }
 type Claims struct {
+	UserId string `json:"userId"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Status string `json:"status"`
@@ -50,7 +51,7 @@ func (c Claims) GenerateJwt() (*Token, error) {
 	}
 	return &Token{AccessToken: signedAccessToken, RefreshToken: signedRefreshToken}, nil
 }
-func BuildMapClaims(mapClaims jwt.MapClaims) (*Claims, error) {
+func BuildMapClaims(mapClaims jwt.Claims) (*Claims, error) {
 	bytes, errs := json.Marshal(mapClaims)
 	if errs != nil {
 		return nil, errs

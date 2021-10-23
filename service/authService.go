@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -22,13 +23,14 @@ type AuthService struct {
 func generateToken(usr *entities.User) (*entities.Token, error) {
 	hour, _ := strconv.Atoi(os.Getenv("TOKEN_EXP"))
 	claims := entities.Claims{
+		UserId: usr.ID.Hex(),
 		Role:   usr.Role,
 		Email:  usr.Email,
 		Status: usr.Status,
 		StandardClaims: jwt.StandardClaims{
 			//token expires within x hours
 			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
-			Subject:   usr.ID.String(),
+			Subject:   usr.ID.Hex(),
 		}}
 	return claims.GenerateJwt()
 }
@@ -139,6 +141,7 @@ func (as AuthService) RequestActivationCode(requestCodeAct *dto.ActivationCodeRe
 	// issue new activation code
 	now := time.Now()
 	activationCode := lib.RandString(5)
+	fmt.Println(activationCode)
 	user.ActivationCode = &entities.ActivationCode{
 		Code:     activationCode,
 		IssuedAt: now,
