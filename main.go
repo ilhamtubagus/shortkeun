@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -12,6 +13,8 @@ import (
 	"github.com/ilhamtubagus/urlShortener/lib"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -24,6 +27,11 @@ func init() {
 	if err != nil {
 		log.Fatal("Error while initializing database connections " + err.Error())
 	}
+	// unique index
+	mgm.CollectionByName("urls").Indexes().CreateOne(context.Background(), mongo.IndexModel{Keys: bson.M{
+		"shortened_url": 1,
+	},
+		Options: options.Index().SetUnique(true)})
 
 }
 func main() {
