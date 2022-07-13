@@ -32,7 +32,7 @@ services:
       # Attach dir ./mongodata into /data/db inside container
       - ./mongodata:/data/db
     ports:
-      # Expose port 6969
+      # Expose port 27019
       - "27019:27017"
     restart: always
     command: --quiet
