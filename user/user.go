@@ -1,4 +1,4 @@
-package entities
+package user
 
 import (
 	"time"
@@ -6,11 +6,16 @@ import (
 	"github.com/kamva/mgm/v3"
 )
 
-const RoleMember = "MEMBER"
-const RoleAdmin = "ADMINISTRATOR"
-const StatusActive = "ACTIVE"
-const StatusInactive = "INACTIVE"
-const StatusSuspended = "SUSPENDED"
+const (
+	ADMIN  = "ADMINISTRATOR"
+	MEMBER = "MEMBER"
+)
+
+const (
+	ACTIVE    = "ACTIVE"
+	INACTIVE  = "INACTIVE"
+	SUSPENDED = "SUSPENDED"
+)
 
 type User struct {
 	mgm.DefaultModel `bson:",inline"`

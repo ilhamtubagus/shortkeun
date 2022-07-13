@@ -56,7 +56,7 @@ func (a AuthHandler) SignIn(c echo.Context) error {
 	if usr == nil || usr.Password == "" {
 		return echo.NewHTTPError(http.StatusNotFound, dto.NewDefaultResponse("user was not found"))
 	}
-	hasher := lib.NewBcryptHasher()
+	hasher := lib.NewBcryptHash()
 	if err := hasher.CompareHash(credential.Password, usr.Password); err != nil {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("password does not match"))
@@ -182,7 +182,7 @@ func (a AuthHandler) Register(c echo.Context) error {
 	}
 
 	// perform password hashing
-	hasher := lib.NewBcryptHasher()
+	hasher := lib.NewBcryptHash()
 	hashedPassword, err := hasher.MakeHash(registrant.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

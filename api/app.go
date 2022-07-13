@@ -30,7 +30,7 @@ import (
 	"github.com/ilhamtubagus/urlShortener/api/handlers"
 	"github.com/ilhamtubagus/urlShortener/entities"
 	"github.com/ilhamtubagus/urlShortener/lib"
-	"github.com/ilhamtubagus/urlShortener/repository"
+	"github.com/ilhamtubagus/urlShortener/userd"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
 )

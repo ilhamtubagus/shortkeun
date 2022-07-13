@@ -6,14 +6,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Hasher interface {
+type Hash interface {
 	MakeHash(plain string) (*string, error)
 	CompareHash(plain, hashToCompare string) error
 }
-type BcryptHasher struct {
+type bcryptHash struct {
 }
 
-func (b BcryptHasher) MakeHash(plain string) (*string, error) {
+func (b bcryptHash) MakeHash(plain string) (*string, error) {
 	if plain == "" {
 		return nil, errors.New("plain string must not be an empty string")
 	}
@@ -21,9 +21,9 @@ func (b BcryptHasher) MakeHash(plain string) (*string, error) {
 	hashedTxt := string(bytes)
 	return &hashedTxt, err
 }
-func (b BcryptHasher) CompareHash(plain, hashToCompare string) error {
+func (b bcryptHash) CompareHash(plain, hashToCompare string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashToCompare), []byte(plain))
 }
-func NewBcryptHasher() Hasher {
-	return &BcryptHasher{}
+func NewBcryptHash() Hash {
+	return &bcryptHash{}
 }
