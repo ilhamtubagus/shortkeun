@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(user *User) error
+	SaveUser(user *User) error
 	UpdateUser(user *User) error
 	FindUserByEmail(email string) (*User, error)
 }
@@ -15,7 +15,7 @@ type userRepository struct {
 	collection *mgm.Collection
 }
 
-func (c userRepository) CreateUser(user *User) error {
+func (c userRepository) SaveUser(user *User) error {
 	err := c.collection.Create(user)
 	if err != nil {
 		return err

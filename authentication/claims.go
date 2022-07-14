@@ -1,4 +1,4 @@
-package entities
+package authentication
 
 import (
 	"encoding/json"
@@ -10,13 +10,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// swagger:model
-type Token struct {
-	// access token
-	AccessToken string `json:"access_token"`
-	// refresh token
-	RefreshToken string `json:"refresh_token"`
-}
 type Claims struct {
 	Role   string `json:"role"`
 	Email  string `json:"email"`

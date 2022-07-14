@@ -15,8 +15,10 @@ type ValidationErrorResponseBody struct {
 	Message string `json:"message"`
 	// Field errors with its messages
 	Errors *[]lib.ValidationError `json:"errors"`
+	// Error code
+	Code int32 `json:"code"`
 }
 
-func NewValidationError(msg string, err *[]lib.ValidationError) *ValidationErrorResponseBody {
-	return &ValidationErrorResponseBody{msg, err}
+func NewValidationError(msg string, err *[]lib.ValidationError, code int32) *ValidationErrorResponseBody {
+	return &ValidationErrorResponseBody{msg, err, code}
 }

@@ -21,7 +21,7 @@ type User struct {
 	mgm.DefaultModel `bson:",inline"`
 	Email            string `json:"email"`
 	Name             string `json:"name"`
-	Password         string `json:"password,omitempty" bson:",omitempty"`
+	Password         string `json:"-" bson:",omitempty"`
 	Status           string `json:",omitempty"`
 	Role             string `json:"role"`
 	// subject from google

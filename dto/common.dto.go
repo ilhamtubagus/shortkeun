@@ -10,8 +10,10 @@ type DefaultResponse struct {
 type DefaultResponseBody struct {
 	// The response message
 	Message string `json:"message"`
+	// Error code
+	Code int32 `json:"code"`
 }
 
-func NewDefaultResponse(msg string) *DefaultResponseBody {
+func NewDefaultResponse(msg string, code int32) *DefaultResponseBody {
 	return &DefaultResponseBody{Message: msg}
 }

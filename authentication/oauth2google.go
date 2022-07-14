@@ -1,4 +1,4 @@
-package lib
+package authentication
 
 import (
 	"encoding/json"
@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/ilhamtubagus/urlShortener/entities"
 )
 
 func getGooglePublicKey(keyID string) (string, error) {
@@ -34,8 +33,8 @@ func getGooglePublicKey(keyID string) (string, error) {
 	}
 	return key, nil
 }
-func VerifyToken(idToken string) (*entities.GoogleClaims, error) {
-	googleClaims := entities.GoogleClaims{}
+func VerifyToken(idToken string) (*GoogleClaims, error) {
+	googleClaims := GoogleClaims{}
 	token, err := jwt.ParseWithClaims(idToken, &googleClaims, func(t *jwt.Token) (interface{}, error) {
 		pem, err := getGooglePublicKey(fmt.Sprintf("%s", t.Header["kid"]))
 		if err != nil {
@@ -50,7 +49,7 @@ func VerifyToken(idToken string) (*entities.GoogleClaims, error) {
 	if err != nil {
 		return nil, err
 	}
-	claims, ok := token.Claims.(*entities.GoogleClaims)
+	claims, ok := token.Claims.(*GoogleClaims)
 	if !ok {
 		return nil, errors.New("invalid google jwt")
 	}
