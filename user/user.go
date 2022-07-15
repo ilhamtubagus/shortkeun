@@ -3,6 +3,7 @@ package user
 import (
 	"time"
 
+	"github.com/ilhamtubagus/urlShortener/user/dto"
 	"github.com/kamva/mgm/v3"
 )
 
@@ -27,6 +28,16 @@ type User struct {
 	// subject from google
 	Sub            string          `json:"sub" bson:"sub,omitempty"`
 	ActivationCode *ActivationCode `json:"activation_code,omitempty" bson:"activation_code,omitempty"`
+}
+
+func (user User) ConvertToDto() *dto.UserResponseBody {
+	return &dto.UserResponseBody{
+		ID:     user.ID.String(),
+		Email:  user.Email,
+		Role:   user.Role,
+		Status: user.Status,
+		Name:   user.Name,
+	}
 }
 
 type ActivationCode struct {

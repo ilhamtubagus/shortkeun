@@ -13,8 +13,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type authenticationController struct {
-	authenticationService authenticationService
+type AuthenticationController struct {
+	authenticationService AuthenticationService
 }
 
 //	swagger:route POST /auth/signin/register auth register
@@ -34,7 +34,7 @@ type authenticationController struct {
 //	- 404: defaultResponse
 //	- 400: defaultResponse
 //	- 500: defaultResponse
-func (controller authenticationController) Register(c echo.Context) error {
+func (controller AuthenticationController) Register(c echo.Context) error {
 	registrant := new(dto.RegistrationRequestBody)
 	if err := c.Bind(&registrant); err != nil {
 		c.Echo().Logger.Error(err)
@@ -88,7 +88,7 @@ func (controller authenticationController) Register(c echo.Context) error {
 //	- 404: defaultResponse
 //	- 400: defaultResponse
 //	- 500: defaultResponse
-func (controller authenticationController) SignIn(c echo.Context) error {
+func (controller AuthenticationController) SignIn(c echo.Context) error {
 	var credential dto.SignInRequestDefaultBody
 	err := c.Bind(&credential)
 	if err != nil {
@@ -127,7 +127,7 @@ func (controller authenticationController) SignIn(c echo.Context) error {
 //	- 404: defaultResponse
 //	- 400: defaultResponse
 //	- 500: defaultResponse
-func (controller authenticationController) GoogleSignIn(c echo.Context) error {
+func (controller AuthenticationController) GoogleSignIn(c echo.Context) error {
 	var credential dto.GoogleSignInRequestBody
 	err := c.Bind(&credential)
 	if err != nil {
@@ -170,7 +170,7 @@ func (controller authenticationController) GoogleSignIn(c echo.Context) error {
 //	- 404: defaultResponse
 //	- 400: defaultResponse
 //	- 500: defaultResponse
-func (controller authenticationController) RequestActivationCode(c echo.Context) error {
+func (controller AuthenticationController) RequestActivationCode(c echo.Context) error {
 	newActivationCodeRequest := new(dto.NewActivationCodeRequestBody)
 	if err := c.Bind(&newActivationCodeRequest); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, commonDto.NewDefaultResponse("failed to parse request body", http.StatusBadRequest))
@@ -208,8 +208,8 @@ func (controller authenticationController) RequestActivationCode(c echo.Context)
 	return c.JSON(http.StatusCreated, commonDto.NewDefaultResponse("activation code sent", http.StatusOK))
 }
 
-func NewAuthenticationController(authenticationService authenticationService) authenticationController {
-	return authenticationController{
+func NewAuthenticationController(authenticationService authenticationService) AuthenticationController {
+	return AuthenticationController{
 		authenticationService: authenticationService,
 	}
 }

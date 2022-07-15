@@ -10,7 +10,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ilhamtubagus/urlShortener/dto"
 	"github.com/ilhamtubagus/urlShortener/lib"
-	"github.com/ilhamtubagus/urlShortener/user"
 	usr "github.com/ilhamtubagus/urlShortener/user"
 	"github.com/labstack/echo/v4"
 )
@@ -18,7 +17,7 @@ import (
 type AuthenticationService interface {
 	Register(user *usr.User) (*usr.User, error)
 	SignIn(user *usr.User) (*Token, error)
-	RequestActivationCode(user *user.User) (*user.User, error)
+	RequestActivationCode(user *usr.User) (*usr.User, error)
 	GoogleSignIn(googleClaims *GoogleClaims) (*Token, error)
 }
 
@@ -90,14 +89,14 @@ func (service authenticationService) SignIn(user *usr.User) (*Token, error) {
 }
 
 func (authenticationService authenticationService) GoogleSignIn(googleClaims *GoogleClaims) (*Token, error) {
-	usr, err := authenticationService.userService.FindUserByEmail(googleClaims.Email)
+	user, err := authenticationService.userService.FindUserByEmail(googleClaims.Email)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected database error", http.StatusInternalServerError))
 	}
-	if usr == nil {
+	if user == nil {
 		//insert new user into database
-		usr = &user.User{Name: googleClaims.Name, Email: googleClaims.Email, Sub: googleClaims.Sub, Status: user.ACTIVE, Role: user.MEMBER}
-		err := authenticationService.userService.SaveUser(usr)
+		user = &usr.User{Name: googleClaims.Name, Email: googleClaims.Email, Sub: googleClaims.Sub, Status: usr.ACTIVE, Role: usr.MEMBER}
+		err := authenticationService.userService.SaveUser(user)
 		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected database error", http.StatusInternalServerError))
 		}
@@ -105,13 +104,13 @@ func (authenticationService authenticationService) GoogleSignIn(googleClaims *Go
 	//create our own jwt and send back to client
 	hour, _ := strconv.Atoi(os.Getenv("TOKEN_EXP"))
 	claims := Claims{
-		Role:   usr.Role,
-		Email:  usr.Email,
-		Status: usr.Status,
+		Role:   user.Role,
+		Email:  user.Email,
+		Status: user.Status,
 		StandardClaims: jwt.StandardClaims{
 			//token expires within x hours
 			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
-			Subject:   usr.ID.String(),
+			Subject:   user.ID.String(),
 		}}
 	token, err := claims.GenerateJwt()
 	if err != nil {
@@ -120,7 +119,7 @@ func (authenticationService authenticationService) GoogleSignIn(googleClaims *Go
 	return token, nil
 }
 
-func (authenticationService authenticationService) RequestActivationCode(user *user.User) (*user.User, error) {
+func (authenticationService authenticationService) RequestActivationCode(user *usr.User) (*usr.User, error) {
 	user, err := authenticationService.userService.FindUserByEmail(user.Email)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
