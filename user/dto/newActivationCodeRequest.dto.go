@@ -1,7 +1,5 @@
 package dto
 
-import "github.com/ilhamtubagus/urlShortener/user"
-
 // swagger:parameters getActivationCode
 type NewActivationCodeRequest struct {
 	// in: body
@@ -15,10 +13,4 @@ type NewActivationCodeRequestBody struct {
 	// required: true
 	// swagger:strfmt email
 	Email string `json:"email" validate:"required,email"`
-}
-
-func (newActivationCodeRequestBody NewActivationCodeRequestBody) ConvertToEntity() *user.User {
-	return &user.User{
-		Email: newActivationCodeRequestBody.Email,
-	}
 }

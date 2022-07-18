@@ -1,7 +1,5 @@
 package dto
 
-import usr "github.com/ilhamtubagus/urlShortener/user"
-
 // swagger:parameters register
 type RegistrationRequest struct {
 	// in: body
@@ -29,14 +27,4 @@ type RegistrationRequestBody struct {
 	// min length: 8
 	// max length: 25
 	ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=Password"`
-}
-
-func (registrationRequestBody *RegistrationRequestBody) ConvertToEntity() *usr.User {
-	return &usr.User{
-		Name:     registrationRequestBody.Name,
-		Email:    registrationRequestBody.Email,
-		Password: registrationRequestBody.Password,
-		Role:     usr.MEMBER,
-		Status:   usr.SUSPENDED,
-	}
 }
