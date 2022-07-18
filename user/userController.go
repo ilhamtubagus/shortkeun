@@ -41,10 +41,13 @@ func (controller UserController) ActivateAccount(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest,
 			commonDto.NewValidationError("Bad Request", lib.MapError(err), http.StatusUnprocessableEntity))
 	}
-	user, err := controller.userService.ActivateAccount(accountActivationRequest.ActivationCode)
+	user, err := controller.userService.ActivateAccount("", accountActivationRequest.ActivationCode)
 	if err != nil {
 		return err
 	}
 	userResponseDto := user.ConvertToDto()
 	return c.JSON(http.StatusOK, &userResponseDto)
+}
+func NewUserController(userService UserService) UserController {
+	return UserController{userService: userService}
 }

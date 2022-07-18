@@ -208,7 +208,7 @@ func (controller AuthenticationController) RequestActivationCode(c echo.Context)
 	return c.JSON(http.StatusCreated, commonDto.NewDefaultResponse("activation code sent", http.StatusOK))
 }
 
-func NewAuthenticationController(authenticationService authenticationService) AuthenticationController {
+func NewAuthenticationController(authenticationService AuthenticationService) AuthenticationController {
 	return AuthenticationController{
 		authenticationService: authenticationService,
 	}

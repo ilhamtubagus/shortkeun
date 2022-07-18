@@ -26,28 +26,38 @@
 package api
 
 import (
-	middleware "github.com/go-openapi/runtime/middleware"
-	"github.com/ilhamtubagus/urlShortener/api/handlers"
-	"github.com/ilhamtubagus/urlShortener/entities"
+	"fmt"
+	"os"
+
+	openAPIMiddleware "github.com/go-openapi/runtime/middleware"
+	"github.com/ilhamtubagus/urlShortener/authentication"
 	"github.com/ilhamtubagus/urlShortener/lib"
-	"github.com/ilhamtubagus/urlShortener/userd"
+	"github.com/ilhamtubagus/urlShortener/user"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 func StartApp(e *echo.Echo) {
 	//add CustomValidator into echo context
 	e.Validator = lib.NewCustomValidator()
 
+	//hash library instantiation
+	bcryptHash := lib.NewBcryptHash()
+
 	//collections instantiation based on entities
-	userCollection := mgm.Coll(new(entities.User))
+	userCollection := mgm.Coll(new(user.User))
 
 	//repositories instantiation
-	userRepository := repository.NewUserRepository(userCollection)
+	userRepository := user.NewUserRepository(userCollection)
+
+	//service instantiation
+	userService := user.NewUserService(userRepository)
+	authenticationService := authentication.NewAuthenticationService(bcryptHash, userService)
 
 	//handlers instantiation
-	authHandler := handlers.NewAuthHandler(userRepository)
-	userHandler := handlers.NewUserHandler(userRepository)
+	authenticationController := authentication.NewAuthenticationController(authenticationService)
+	userController := user.NewUserController(userService)
 
 	//routes definition
 	e.GET("", func(c echo.Context) error {
@@ -57,15 +67,23 @@ func StartApp(e *echo.Echo) {
 	e.GET("/swagger.yaml", func(c echo.Context) error {
 		return c.File("swagger.yaml")
 	})
-	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
-	redocMiddleware := middleware.Redoc(opts, nil)
+	opts := openAPIMiddleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	redocMiddleware := openAPIMiddleware.Redoc(opts, nil)
 	eRedocMiddleware := echo.WrapHandler(redocMiddleware)
 	e.GET("/docs", eRedocMiddleware)
-	// auth routes
-	e.POST("/auth/signin", authHandler.SignIn)
-	e.POST("/auth/signin/google", authHandler.GoogleSignIn)
-	e.PATCH("/auth/signin/activation-code", authHandler.RequestActivationCode)
-	e.POST("/auth/register", authHandler.Register)
-	// user routes
-	e.PATCH("/user/status", userHandler.ActivateAccount)
+	// authentication routes
+	e.POST("/tokens", authenticationController.SignIn)
+	e.POST("/tokens/google", authenticationController.GoogleSignIn)
+	e.PATCH("/users/activation-code", authenticationController.RequestActivationCode)
+	e.POST("/users", authenticationController.Register)
+
+	restrictedRoutes := e.Group("/users/status")
+	secret := os.Getenv("TOKEN_SECRET")
+	if secret == "" {
+		fmt.Fprintf(os.Stderr, "error: %s\n", "Token secret not found")
+		os.Exit(1)
+	}
+	jwtConfig := echoMiddleware.JWTConfig{Claims: &authentication.Claims{}, SigningKey: []byte(secret), ErrorHandlerWithContext: authentication.JWTErrorHandler}
+	restrictedRoutes.Use(echoMiddleware.JWTWithConfig(jwtConfig))
+	restrictedRoutes.PATCH("/", userController.ActivateAccount)
 }

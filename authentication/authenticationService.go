@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ilhamtubagus/urlShortener/dto"
 	"github.com/ilhamtubagus/urlShortener/lib"
+	"github.com/ilhamtubagus/urlShortener/user"
 	usr "github.com/ilhamtubagus/urlShortener/user"
 	"github.com/labstack/echo/v4"
 )
@@ -152,4 +153,8 @@ func (authenticationService authenticationService) RequestActivationCode(user *u
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return user, nil
+}
+
+func NewAuthenticationService(hash lib.Hash, userService user.UserService) AuthenticationService {
+	return authenticationService{userService: userService, hash: hash}
 }
