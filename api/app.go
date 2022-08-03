@@ -52,8 +52,8 @@ func StartApp(e *echo.Echo) {
 	userRepository := user.NewUserRepository(userCollection)
 
 	//service instantiation
-	userService := user.NewUserService(userRepository)
-	authenticationService := authentication.NewAuthenticationService(bcryptHash, userService)
+	userService := user.NewUserService(userRepository, bcryptHash)
+	authenticationService := authentication.NewAuthenticationService(userService, bcryptHash)
 
 	//handlers instantiation
 	authenticationController := authentication.NewAuthenticationController(authenticationService)
@@ -74,8 +74,8 @@ func StartApp(e *echo.Echo) {
 	// authentication routes
 	e.POST("/tokens", authenticationController.SignIn)
 	e.POST("/tokens/google", authenticationController.GoogleSignIn)
-	e.PATCH("/users/activation-code", authenticationController.RequestActivationCode)
-	e.POST("/users", authenticationController.Register)
+	e.PATCH("/users/activation-code", userController.RequestActivationCode)
+	e.POST("/users", userController.Register)
 
 	restrictedRoutes := e.Group("/users/status")
 	secret := os.Getenv("TOKEN_SECRET")
@@ -83,7 +83,12 @@ func StartApp(e *echo.Echo) {
 		fmt.Fprintf(os.Stderr, "error: %s\n", "Token secret not found")
 		os.Exit(1)
 	}
-	jwtConfig := echoMiddleware.JWTConfig{Claims: &authentication.Claims{}, SigningKey: []byte(secret), ErrorHandlerWithContext: authentication.JWTErrorHandler}
+	jwtConfig := echoMiddleware.JWTConfig{
+		Claims:      &authentication.Claims{},
+		SigningKey:  []byte(secret),
+		TokenLookup: "header:" + echo.HeaderAuthorization,
+		AuthScheme:  "Bearer",
+	}
 	restrictedRoutes.Use(echoMiddleware.JWTWithConfig(jwtConfig))
-	restrictedRoutes.PATCH("/", userController.ActivateAccount)
+	restrictedRoutes.PATCH("", userController.ActivateAccount)
 }

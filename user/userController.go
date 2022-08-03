@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	commonDto "github.com/ilhamtubagus/urlShortener/dto"
 	"github.com/ilhamtubagus/urlShortener/email"
 	"github.com/ilhamtubagus/urlShortener/lib"
@@ -36,21 +37,23 @@ type UserController struct {
 //	- 400: defaultResponse
 //	- 500: defaultResponse
 func (controller UserController) ActivateAccount(c echo.Context) error {
-	accountActivationRequest := new(dto.AccountActivationRequestBody)
-	if err := c.Bind(&accountActivationRequest); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, commonDto.NewDefaultResponse("failed to parse request body", http.StatusBadRequest))
-	}
-	// dto validation
-	if err := c.Validate(accountActivationRequest); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest,
-			commonDto.NewValidationError("Bad Request", lib.MapError(err), http.StatusUnprocessableEntity))
-	}
-	user, err := controller.userService.ActivateAccount("", accountActivationRequest.ActivationCode)
-	if err != nil {
-		return err
-	}
-	userResponseDto := user.ConvertToDto()
-	return c.JSON(http.StatusOK, &userResponseDto)
+	// accountActivationRequest := new(dto.AccountActivationRequestBody)
+	// if err := c.Bind(&accountActivationRequest); err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, commonDto.NewDefaultResponse("failed to parse request body", http.StatusBadRequest))
+	// }
+	// // dto validation
+	// if err := c.Validate(accountActivationRequest); err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest,
+	// 		commonDto.NewValidationError("Bad Request", lib.MapError(err), http.StatusUnprocessableEntity))
+	// }
+	// user, err := controller.userService.ActivateAccount("", accountActivationRequest.ActivationCode)
+	// if err != nil {
+	// 	return err
+	// }
+	// userResponseDto := user.ConvertToDto()
+	// return c.JSON(http.StatusOK, &userResponseDto)
+	user := c.Get("user").(*jwt.Token)
+	return c.JSON(200, user)
 }
 
 //	swagger:route POST /users register

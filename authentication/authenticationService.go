@@ -86,6 +86,6 @@ func (authenticationService authenticationService) GoogleSignIn(googleClaims *Go
 	return token, nil
 }
 
-func NewAuthenticationService(userService user.UserService) AuthenticationService {
-	return authenticationService{userService: userService}
+func NewAuthenticationService(userService user.UserService, hash lib.Hash) AuthenticationService {
+	return authenticationService{userService: userService, hash: hash}
 }
