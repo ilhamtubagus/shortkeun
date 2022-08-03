@@ -21,6 +21,7 @@ func init() {
 	if utils.JakartaTime, err = time.LoadLocation("Asia/Jakarta"); err != nil {
 		panic("Error loading '" + "Asia/Jakarta" + "' as timezone location: " + err.Error())
 	}
+	time.Local = utils.JakartaTime
 	//uncomment line below in production stage
 	utils.LoadEnv(".env")
 	// Setup the mgm default config
