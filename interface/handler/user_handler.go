@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/ilhamtubagus/urlShortener/domain/constant"
 	"github.com/ilhamtubagus/urlShortener/domain/entity"
 	"github.com/ilhamtubagus/urlShortener/domain/service"
@@ -39,23 +38,23 @@ type UserHandler struct {
 //	- 400: defaultResponse
 //	- 500: defaultResponse
 func (u UserHandler) ActivateAccount(c echo.Context) error {
-	// accountActivationRequest := new(dto.AccountActivationRequestBody)
-	// if err := c.Bind(&accountActivationRequest); err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("failed to parse request body", http.StatusBadRequest))
-	// }
-	// // dto validation
-	// if err := c.Validate(accountActivationRequest); err != nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest,
-	// 		dto.NewValidationError("Bad Request", utils.MapError(err), http.StatusUnprocessableEntity))
-	// }
-	// user, err := u.userService.ActivateAccount("", accountActivationRequest.ActivationCode)
-	// if err != nil {
-	// 	return err
-	// }
-	// userResponseDto := user.ConvertToDto()
-	// return c.JSON(http.StatusOK, &userResponseDto)
-	user := c.Get("user").(*jwt.Token)
-	return c.JSON(200, user)
+	accountActivationRequest := new(dto.AccountActivationRequestBody)
+	if err := c.Bind(&accountActivationRequest); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("failed to parse request body", http.StatusBadRequest))
+	}
+	// dto validation
+	if err := c.Validate(accountActivationRequest); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest,
+			dto.NewValidationError("Bad Request", utils.MapError(err), http.StatusUnprocessableEntity))
+	}
+	user, err := u.userService.ActivateAccount(&entity.User{
+		Email: accountActivationRequest.Email,
+	}, accountActivationRequest.ActivationCode)
+	if err != nil {
+		return err
+	}
+	userResponseDto := user.ConvertToResponseDto()
+	return c.JSON(http.StatusOK, &userResponseDto)
 }
 
 //	swagger:route POST /users register

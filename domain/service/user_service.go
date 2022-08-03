@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -19,7 +18,7 @@ type UserService interface {
 	FindUserByEmail(email string) (*entity.User, error)
 	SaveUser(user *entity.User) error
 	UpdateUser(user *entity.User) error
-	ActivateAccount(email, activationCode string) (*entity.User, error)
+	ActivateAccount(user *entity.User, activationCode string) (*entity.User, error)
 	Register(user *entity.User) (*entity.User, error)
 	RequestActivationCode(user *entity.User) (*entity.User, error)
 }
@@ -29,7 +28,7 @@ type userService struct {
 }
 
 func (u userService) SaveUser(user *entity.User) error {
-	return u.userRepository.SaveUser(user)
+	return u.userRepository.CreateUser(user)
 }
 
 func (u userService) FindUserByEmail(email string) (*entity.User, error) {
@@ -65,19 +64,36 @@ func (u userService) Register(user *entity.User) (*entity.User, error) {
 		IssuedAt: now,
 		ExpireAt: now.Add(time.Minute * time.Duration(activationCodeExpiry)),
 	}
-	err = u.userRepository.SaveUser(user)
+	err = u.userRepository.CreateUser(user)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return user, nil
 }
 
-func (u userService) ActivateAccount(email, activationCode string) (*entity.User, error) {
-	user, err := u.userRepository.FindUserByEmail(email)
+func (u userService) ActivateAccount(user *entity.User, activationCode string) (*entity.User, error) {
+	searchedUser, err := u.userRepository.FindUserByEmail(user.Email)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	if searchedUser == nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("user not found", http.StatusBadRequest))
+	}
+	if searchedUser.Status != constant.SUSPENDED && searchedUser.Status != constant.INACTIVE {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("current user status must be INACTIVE or SUSPENDED", http.StatusBadRequest))
+	}
+	if searchedUser.ActivationCode == nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("activation code was not found", http.StatusBadRequest))
+	}
+	if time.Now().After(searchedUser.ActivationCode.ExpireAt) {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("activation code has been expired", http.StatusBadRequest))
+	}
+	searchedUser.Status = constant.ACTIVE
+	err = u.userRepository.UpdateUser(searchedUser)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return searchedUser, nil
 }
 
 func (u userService) RequestActivationCode(user *entity.User) (*entity.User, error) {
@@ -95,7 +111,7 @@ func (u userService) RequestActivationCode(user *entity.User) (*entity.User, err
 		return nil, echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("user with this email address has already been activated", http.StatusBadRequest))
 	}
 	if user.ActivationCode != nil {
-		if user.ActivationCode.ExpireAt.In(time.Now().Location()).After(time.Now()) {
+		if time.Now().Before(user.ActivationCode.ExpireAt) {
 			return nil, echo.NewHTTPError(http.StatusBadRequest, dto.NewDefaultResponse("the previous activation code has not been expired", http.StatusBadRequest))
 		}
 	}
@@ -109,7 +125,6 @@ func (u userService) RequestActivationCode(user *entity.User) (*entity.User, err
 	}
 	err = u.userRepository.UpdateUser(user)
 	if err != nil {
-		fmt.Println(err)
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return user, nil

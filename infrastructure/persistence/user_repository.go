@@ -11,7 +11,7 @@ type userRepository struct {
 	collection *mgm.Collection
 }
 
-func (c userRepository) SaveUser(user *entity.User) error {
+func (c userRepository) CreateUser(user *entity.User) error {
 	err := c.collection.Create(user)
 	if err != nil {
 		return err

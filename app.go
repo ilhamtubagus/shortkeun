@@ -12,8 +12,6 @@ import (
 	"github.com/ilhamtubagus/urlShortener/utils"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
-
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 // Package classification Shorkeun API.
@@ -81,19 +79,16 @@ func InitializeEchoApp(e *echo.Echo) {
 	e.POST("/tokens/google", authenticationHandler.GoogleSignIn)
 	e.PATCH("/users/activation-code", userHandler.RequestActivationCode)
 	e.POST("/users", userHandler.Register)
-
-	restrictedRoutes := e.Group("/users/status")
+	e.PATCH("/users/status", userHandler.ActivateAccount)
 	secret := os.Getenv("TOKEN_SECRET")
 	if secret == "" {
 		fmt.Fprintf(os.Stderr, "error: %s\n", "Token secret not found")
 		os.Exit(1)
 	}
-	jwtConfig := echoMiddleware.JWTConfig{
-		Claims:      &entity.Claims{},
-		SigningKey:  []byte(secret),
-		TokenLookup: "header:" + echo.HeaderAuthorization,
-		AuthScheme:  "Bearer",
-	}
-	restrictedRoutes.Use(echoMiddleware.JWTWithConfig(jwtConfig))
-	restrictedRoutes.PATCH("", userHandler.ActivateAccount)
+	// jwtConfig := echoMiddleware.JWTConfig{
+	// 	Claims:      &entity.Claims{},
+	// 	SigningKey:  []byte(secret),
+	// 	TokenLookup: "header:" + echo.HeaderAuthorization,
+	// 	AuthScheme:  "Bearer",
+	// }
 }
