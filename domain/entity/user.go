@@ -19,7 +19,7 @@ type User struct {
 
 func (user User) ConvertToResponseDto() *dto.UserResponseBody {
 	return &dto.UserResponseBody{
-		ID:     user.ID.String(),
+		ID:     user.ID.Hex(),
 		Email:  user.Email,
 		Role:   user.Role,
 		Status: user.Status,

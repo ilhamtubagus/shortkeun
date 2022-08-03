@@ -115,7 +115,8 @@ func (u UserHandler) Register(c echo.Context) error {
 			c.Logger().Error(fmt.Sprintf("failed to send email registration to %s", user.Email))
 		}
 	}()
-	return c.JSON(http.StatusCreated, &user)
+	userResponseDto := user.ConvertToResponseDto()
+	return c.JSON(http.StatusCreated, &userResponseDto)
 }
 
 //	swagger:route POST /users/activation-code auth getActivationCode
@@ -166,7 +167,7 @@ func (u UserHandler) RequestActivationCode(c echo.Context) error {
 	}
 	// asynchronously send email registration
 	go func() {
-		err := utils.SendHTMLMail([]string{user.Email}, "Activate Your Account", emailBody, pathToTemplate, []string{attachment})
+		err := utils.SendHTMLMail([]string{user.Email}, "New Activate Code", emailBody, pathToTemplate, []string{attachment})
 		if err != nil {
 			c.Logger().Error(fmt.Sprintf("failed to send email registration to %s", user.Email))
 		}
