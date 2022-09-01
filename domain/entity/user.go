@@ -1,6 +1,11 @@
 package entity
 
 import (
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/ilhamtubagus/urlShortener/interface/dto"
 	"github.com/kamva/mgm/v3"
 )
@@ -25,4 +30,22 @@ func (user User) ConvertToResponseDto() *dto.UserResponseBody {
 		Status: user.Status,
 		Name:   user.Name,
 	}
+}
+
+func (user User) CreateClaims() (*Claims, error) {
+	//create our own jwt and send back to client
+	hour, err := strconv.Atoi(os.Getenv("TOKEN_EXP"))
+	if err != nil {
+		return nil, err
+	}
+	claims := Claims{
+		Role:   user.Role,
+		Email:  user.Email,
+		Status: user.Status,
+		StandardClaims: jwt.StandardClaims{
+			//token expires within x hours
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
+			Subject:   user.ID.String(),
+		}}
+	return &claims, nil
 }

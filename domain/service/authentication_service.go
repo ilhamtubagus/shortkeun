@@ -3,11 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"strconv"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/ilhamtubagus/urlShortener/domain/constant"
 	"github.com/ilhamtubagus/urlShortener/domain/entity"
 	"github.com/ilhamtubagus/urlShortener/interface/dto"
@@ -38,16 +34,10 @@ func (a authenticationService) SignIn(user *entity.User) (*entity.Token, error) 
 		fmt.Println(err)
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("password does not match", http.StatusBadRequest))
 	}
-	hour, _ := strconv.Atoi(os.Getenv("TOKEN_EXP"))
-	claims := entity.Claims{
-		Role:   searchedUser.Role,
-		Email:  searchedUser.Email,
-		Status: searchedUser.Status,
-		StandardClaims: jwt.StandardClaims{
-			//token expires within x hours
-			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
-			Subject:   searchedUser.ID.String(),
-		}}
+	claims, err := user.CreateClaims()
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected server error", http.StatusInternalServerError))
+	}
 	token, err := claims.GenerateJwt()
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected server error", http.StatusInternalServerError))
@@ -72,17 +62,11 @@ func (a authenticationService) GoogleSignIn(credential string) (*entity.Token, e
 			return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected database error", http.StatusInternalServerError))
 		}
 	}
-	//create our own jwt and send back to client
-	hour, _ := strconv.Atoi(os.Getenv("TOKEN_EXP"))
-	claims := entity.Claims{
-		Role:   user.Role,
-		Email:  user.Email,
-		Status: user.Status,
-		StandardClaims: jwt.StandardClaims{
-			//token expires within x hours
-			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
-			Subject:   user.ID.String(),
-		}}
+	claims, err := user.CreateClaims()
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected server error", http.StatusInternalServerError))
+	}
+
 	token, err := claims.GenerateJwt()
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected server error", http.StatusInternalServerError))
