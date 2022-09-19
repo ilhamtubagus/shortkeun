@@ -45,7 +45,7 @@ func (user User) CreateClaims() (*Claims, error) {
 		StandardClaims: jwt.StandardClaims{
 			//token expires within x hours
 			ExpiresAt: time.Now().Add(time.Hour * time.Duration(hour)).Unix(),
-			Subject:   user.ID.String(),
+			Subject:   user.Email,
 		}}
 	return &claims, nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,8 +35,15 @@ func (c Claims) GenerateJwt() (*Token, error) {
 	refreshToken := jwt.New(jwt.SigningMethodHS256)
 	rtClaims := refreshToken.Claims.(jwt.MapClaims)
 	rtClaims["sub"] = c.Subject
-	//refresh token expires within 24 hours
-	rtClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	refreshTokenExpirationInString := os.Getenv("REFRESH_TOKEN_EXP")
+	if refreshTokenExpirationInString == "" {
+		return nil, errors.New("refresh token expiration has not been set")
+	}
+	hour, err := strconv.Atoi(refreshTokenExpirationInString)
+	if err != nil {
+		return nil, err
+	}
+	rtClaims["exp"] = time.Now().Add(time.Hour * time.Duration(hour)).Unix()
 
 	signedRefreshToken, err := refreshToken.SignedString([]byte(secret))
 	if err != nil {
