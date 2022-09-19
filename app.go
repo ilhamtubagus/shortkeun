@@ -23,21 +23,23 @@ import (
 // Moreover, it could be used if someone wishes not to use the original URL or want to hide the original one.
 // Terms Of Service:
 // There are no TOS at this moment, use at your own risk we take no responsibility
-// 	Schemes: http, https
-//     Host: localhost
-//     BasePath: /
-//     Version: 1.0.0
-//     License: MIT http://opensource.org/licenses/MIT
-//     Contact: Ilham Tubagus Arfian<ilhamta27@gmail.com> https://github.com/ilhamtubagus
-//     Consumes:
-//     - application/json
-// 		Produces:
-//     - application/json
-//     SecurityDefinitions:
-//     Bearer-Token:
-//          type: apiKey
-//          name: Authorization
-//          in: header
+//
+//		Schemes: http, https
+//	    Host: localhost
+//	    BasePath: /
+//	    Version: 1.0.0
+//	    License: MIT http://opensource.org/licenses/MIT
+//	    Contact: Ilham Tubagus Arfian<ilhamta27@gmail.com> https://github.com/ilhamtubagus
+//	    Consumes:
+//	    - application/json
+//			Produces:
+//	    - application/json
+//	    SecurityDefinitions:
+//	    Bearer-Token:
+//	         type: apiKey
+//	         name: Authorization
+//	         in: header
+//
 // swagger:meta
 func InitializeEchoApp(e *echo.Echo) {
 	//add CustomValidator into echo context
@@ -77,6 +79,7 @@ func InitializeEchoApp(e *echo.Echo) {
 	// authentication routes
 	e.POST("/tokens", authenticationHandler.SignIn)
 	e.POST("/tokens/google", authenticationHandler.GoogleSignIn)
+	e.PATCH("/tokens", authenticationHandler.RefreshToken)
 	e.PATCH("/users/activation-code", userHandler.RequestActivationCode)
 	e.POST("/users", userHandler.Register)
 	e.PATCH("/users/status", userHandler.ActivateAccount)
