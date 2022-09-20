@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/ilhamtubagus/urlShortener/domain/constant"
 	"github.com/ilhamtubagus/urlShortener/domain/entity"
 	"github.com/ilhamtubagus/urlShortener/interface/dto"
@@ -38,7 +38,7 @@ func (a authenticationService) SignIn(user *entity.User) (*entity.Token, error) 
 		fmt.Println(err)
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("password does not match", http.StatusBadRequest))
 	}
-	claims, err := user.CreateClaims()
+	claims, err := searchedUser.CreateClaims()
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, dto.NewDefaultResponse("unexpected server error", http.StatusInternalServerError))
 	}

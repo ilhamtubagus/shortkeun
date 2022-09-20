@@ -1,6 +1,6 @@
 package entity
 
-import "github.com/dgrijalva/jwt-go"
+import "github.com/golang-jwt/jwt"
 
 type GoogleClaims struct {
 	Email         string `json:"email"`

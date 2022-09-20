@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	openAPIMiddleware "github.com/go-openapi/runtime/middleware"
+	"github.com/golang-jwt/jwt"
 	"github.com/ilhamtubagus/urlShortener/domain/entity"
 	"github.com/ilhamtubagus/urlShortener/domain/service"
 	"github.com/ilhamtubagus/urlShortener/infrastructure/persistence"
@@ -12,7 +14,13 @@ import (
 	"github.com/ilhamtubagus/urlShortener/utils"
 	"github.com/kamva/mgm/v3"
 	"github.com/labstack/echo/v4"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
+
+func restricted(c echo.Context) error {
+	user := c.(*utils.AuthenticatedContext)
+	return c.String(http.StatusOK, "Welcome "+user.Role+"!")
+}
 
 // Package classification Shorkeun API.
 // Documentation for Shorkeun API.
@@ -88,10 +96,24 @@ func InitializeEchoApp(e *echo.Echo) {
 		fmt.Fprintf(os.Stderr, "error: %s\n", "Token secret not found")
 		os.Exit(1)
 	}
-	// jwtConfig := echoMiddleware.JWTConfig{
-	// 	Claims:      &entity.Claims{},
-	// 	SigningKey:  []byte(secret),
-	// 	TokenLookup: "header:" + echo.HeaderAuthorization,
-	// 	AuthScheme:  "Bearer",
-	// }
+
+	// Restricted group
+	r := e.Group("/urls")
+	jwtConfig := echoMiddleware.JWTConfig{
+		Claims:      &entity.Claims{},
+		SigningKey:  []byte(secret),
+		TokenLookup: "header:" + echo.HeaderAuthorization,
+		AuthScheme:  "Bearer",
+	}
+
+	r.Use(echoMiddleware.JWTWithConfig(jwtConfig))
+	r.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			user := c.Get("user").(*jwt.Token)
+			claims := user.Claims.(*entity.Claims)
+			cc := &utils.AuthenticatedContext{Context: c, Email: claims.Email, Role: claims.Role, Status: claims.Status}
+			return next(cc)
+		}
+	})
+	r.POST("", restricted)
 }
